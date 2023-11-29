@@ -1,9 +1,9 @@
 from processing.mfe import generate_features as audio_features
 from processing.image import generate_features as image_features
 import tflite_runtime.interpreter as tflite
-import cv2
+from scipy import signal
 import numpy as np
-
+import cv2
 
 class NeuralNetwork:
     def __init__(self, model_path):
@@ -12,8 +12,6 @@ class NeuralNetwork:
 
     def __init_model(self, path):
         try:
-            # Open Model
-            # Generate interpreter
             interpreter = tflite.Interpreter(model_path=path)
             interpreter.allocate_tensors()
             input = interpreter.get_input_details()  # Lo que recibe
@@ -29,9 +27,17 @@ class NeuralNetwork:
 
 class AudioNeuralNetwork(NeuralNetwork):
     def __preprocessing(self, raw_data):
+        raw_data = np.frombuffer(raw_data, dtype=np.int16)
+        raw_data = signal.resample(raw_data, int(len(raw_data) * (16000 / 44100)))
+
+        # Resize audio signal
+        if len(raw_data) != 6800:
+            raw_data = np.resize(raw_data, 6800)
+        
+        raw_data = np.array(raw_data, dtype=np.float32)
+
         implementation_version = 4  # 4 is latest versions
         draw_graphs = False  # For testing from script, disable graphing to improve speed
-        # Axes names, can only be one for MFE, name doesn't matter
         axes = ['accY']
         sampling_freq = 16000
 
@@ -64,7 +70,7 @@ class AudioNeuralNetwork(NeuralNetwork):
         else:
             self.idx = -1
 
-        items = ["lata", "plastico", "vidrio", "Nada"]
+        items = ["lata", "plastico", "vidrio", "nada"]
         return items[self.idx]
 
 
