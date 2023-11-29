@@ -46,13 +46,7 @@ def audio_processing(_, run_event):
     global audio_classification
     while run_event.is_set():
         audio_data = stream.read(CHUNK, exception_on_overflow=False)
-        audio_44 = np.frombuffer(audio_data, dtype=np.int16)
-        audio_16 = signal.resample(audio_44, int(len(audio_44) * (16000 / 44100)))
-
-        if len(audio_16) != CHUNK:
-            audio_16 = np.resize(audio_16, CHUNK)
-        
-        audio_classification = trash_audio_model.run(np.array(audio_16, dtype=np.float32))
+        audio_classification = trash_audio_model.run(audio_data)
 
 
 run_event = threading.Event()
