@@ -1,0 +1,7 @@
+numpy 
+matplotlib
+pyaudio
+scipy
+opencv-python
+tflite-runtime
+librosa 

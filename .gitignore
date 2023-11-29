@@ -1,0 +1,8 @@
+env
+.vscode
+__pycache__
+/camera/papel
+/camera/images.zip
+/camera/papel.zip
+iterate.py
+cam_config

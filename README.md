@@ -1,0 +1,2 @@
+# TNGO
+The TNGO is the first autonomous trash basket that can classify paper, plastic bottles and soda cans. Using 2 neural networks based on audio and image, the TNGO can make decisions to classify your trash
