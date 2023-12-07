@@ -72,7 +72,6 @@ class AudioNeuralNetwork(NeuralNetwork):
 
 class ImageNeuralNetwork(NeuralNetwork):
     def __preprocessing(self,raw_data):
-        raw_data = cv2.rotate(raw_data,cv2.ROTATE_180)
         raw_image = cv2.resize(raw_data,(96,96))
         raw_image = cv2.cvtColor(raw_image, cv2.COLOR_BGR2GRAY)
         raw_image = raw_image.flatten()
