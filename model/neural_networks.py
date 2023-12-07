@@ -62,20 +62,17 @@ class AudioNeuralNetwork(NeuralNetwork):
         self.interpreter.invoke()  # Corremos la inferencia
 
         result = self.interpreter.get_tensor(self.output_model[0]['index'])
-        self.result_probabilities = self.softmax(
-            result)  # Array of Probabilities
-        # Get the index of the maximum value
-        if np.max(self.result_probabilities) > 0.50:
-            self.idx = np.argmax(self.result_probabilities)
-        else:
-            self.idx = -1
-
-        items = ["lata", "plastico", "vidrio", "nada"]
-        return items[self.idx]
+        res_probs = self.softmax(result) 
+        res_probs = np.insert(res_probs,2,0) # añadimos un valor cero que representa papel
+        
+        idx = np.argmax(res_probs)
+        items = ["lata","nada","papel","plastico"]
+        return items[idx],res_probs
 
 
 class ImageNeuralNetwork(NeuralNetwork):
     def __preprocessing(self,raw_data):
+        raw_data = cv2.rotate(raw_data,cv2.ROTATE_180)
         raw_image = cv2.resize(raw_data,(96,96))
         raw_image = cv2.cvtColor(raw_image, cv2.COLOR_BGR2GRAY)
         raw_image = raw_image.flatten()
@@ -94,5 +91,5 @@ class ImageNeuralNetwork(NeuralNetwork):
         res_probs = self.softmax(result) 
 
         idx = np.argmax(res_probs)
-        items = ["lata", "nada", "papel", "plastico"]
-        return items[idx]
+        items = ["lata","nada","papel","plastico"]
+        return items[idx],res_probs
