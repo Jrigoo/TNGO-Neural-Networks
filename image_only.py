@@ -19,7 +19,7 @@ try:
         if ret:
             # Image data
             frame = cv2.convertScaleAbs(frame, alpha=1, beta=1)
-            image_classification = trash_img_model.run(frame)
+            image_classification,image_probs = trash_img_model.run(frame)
             color_avg = color_sensor.color_state()
             print(f"Image: {image_classification} Color Sensor: {color_avg}")
             time.sleep(0.05)

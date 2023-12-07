@@ -24,25 +24,41 @@ stream = p.open(format=FORMAT,
 
 # Open camera
 cap = cv2.VideoCapture(0)
-
 try:
-    motor = Motor()
+    motor = Motor(0.002)
     color_sensor = ColorSensor()
+
     while True:
         ret, frame = cap.read()
-        if ret:
-            # Image data
-            frame = cv2.convertScaleAbs(frame, alpha=1, beta=1)
-            image_classification = trash_img_model.run(frame)
+        image_result = "nada"
 
-            # Audio data
-            audio_data = stream.read(CHUNK, exception_on_overflow=False)
-            audio_classification = trash_audio_model.run(audio_data)
-            color_avg = color_sensor.color_state()
+        # Audio data
+        audio_data = stream.read(CHUNK, exception_on_overflow=False)
+        audio_result,audio_probs = trash_audio_model.run(audio_data)
+        color_avg = color_sensor.color_state()
 
-            print(f"Audio: {audio_classification} Image: {image_classification} Color: {color_avg}")
+        print(f"audio: {audio_result} color: {color_avg}")        
+        if audio_result != "nada": 
+            print(f"audio captado... {audio_result}")
+            start_time = time.time()
+            while color_avg > 35:
+                if time.time() - start_time > 0.5:
+                    break
 
-            time.sleep(0.1)
+        if color_avg < 35:
+            frame_counter = 0
+            start_time = time.time()
+            while frame_counter < 5:
+                ret, frame = cap.read()
+                if ret:
+                    frame = cv2.convertScaleAbs(frame, alpha=1, beta=1)
+                    image_result,image_probs = trash_img_model.run(frame)
+                    frame_counter += 1
+            if  image_result != "nada":
+                print(f"Image: {image_result} Audio: {audio_result}")
+                motor.classify_trash(image_result)
+                  
+        time.sleep(0.05)
 
 except:
     print("done.")

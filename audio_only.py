@@ -6,7 +6,7 @@ from control.hardware import Motor, ColorSensor
 import time
 import cv2
 
-trash_audio_model = AudioNeuralNetwork("model/tf_lite/trash-audio-model-v3.0.lite")
+trash_audio_model = AudioNeuralNetwork("model/tf_lite/trash-audio-model-v4.0.lite")
 
 # Define Microphone parameters
 FORMAT = pyaudio.paInt16
@@ -28,11 +28,11 @@ try:
     while True:
         # Audio data
         audio_data = stream.read(CHUNK, exception_on_overflow=False)
-        audio_classification = trash_audio_model.run(audio_data)
+        audio_classification,audio_probs = trash_audio_model.run(audio_data)
         color_avg = color_sensor.color_state()
 
-        print(f"Audio: {audio_classification} Color: {color_avg}")
-        time.sleep(0.1)
+        print(f"Audio: {audio_classification} Color: {color_avg}")            
+        time.sleep(0.05)
 
 except:
     print("done.")
