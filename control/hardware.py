@@ -36,7 +36,7 @@ class Motor:
     def classify_trash(self,type):
         types = {
             "lata":[(200,1),(200,0)],
-            "vidrio":[(200,0),(200,1)],
+            "basura":[(200,0),(200,1)],
             "plastico":[(400,0),(400,1)],
             "papel":[(0,0),(0,0)]
         }
@@ -47,9 +47,9 @@ class Motor:
             self.__move_stepper(types[type][1][0], types[type][1][1])
 
     def __open_gate(self):
-        self.__move_servo(100)
+        self.__move_servo(108)
         time.sleep(2)
-        self.__move_servo(175)
+        self.__move_servo(178)
 
     def cleanup_pins(self):   
         self.servo.stop()
@@ -117,5 +117,12 @@ class ColorSensor:
     
 
 if __name__ == "__main__":
-    motor = Motor()
-    motor.classify_trash("lata")
+    motor = Motor(0.001)
+    try:
+        while True:
+            tipo = input("Desecho: basura, lata, papel, plastico: ")    
+            motor.classify_trash(tipo)
+    except Exception as e:
+        print("Done")
+    finally:
+	    motor.cleanup_pins()
