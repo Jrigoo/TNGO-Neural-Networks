@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 
 class Motor:
-    def __init__(self,stepper_velocity=0.005):
+    def __init__(self,step_delay=0.01):
         GPIO.setmode(GPIO.BOARD)
 
         #  Set Servo Motor
@@ -10,15 +10,25 @@ class Motor:
         self.servo = GPIO.PWM(32,50) 
         self.servo.start(0)
 
-        self.__direction_pin = 38
-        self.__step_pin = 40
-        self.__limit_pin = 8
-
         # Set Stepper Motor
-        GPIO.setup(self.__direction_pin, GPIO.OUT) # Direction
-        GPIO.setup(self.__step_pin, GPIO.OUT) # Step
-        GPIO.setup(self.__limit_pin, GPIO.IN, pull_up_down = GPIO.PUD_UP) # Limit
-        self.stepper_velocity = stepper_velocity
+        self.__A = 8
+        self.__C = 10
+        self.__B = 12
+        self.__D = 16
+
+        GPIO.setup(self.__A, GPIO.OUT)
+        GPIO.setup(self.__C, GPIO.OUT)
+        GPIO.setup(self.__B, GPIO.OUT)
+        GPIO.setup(self.__D, GPIO.OUT)
+
+        self.__step_sequence = [
+            [1, 0, 1, 0],
+            [0, 1, 1, 0],
+            [0, 1, 0, 1],
+            [1, 0, 0, 1]
+        ]
+
+        self.step_delay = step_delay
 
     def __move_servo(self,angle):
         self.servo.ChangeDutyCycle(2+(angle/18))
@@ -26,18 +36,35 @@ class Motor:
         self.servo.ChangeDutyCycle(0)
 
     def __move_stepper(self,steps:int,direction:int):
-        GPIO.output(self.__direction_pin, direction)
-        for _ in range(steps):
-            GPIO.output(self.__step_pin, GPIO.HIGH)
-            time.sleep(self.stepper_velocity)
-            GPIO.output(self.__step_pin, GPIO.LOW)
-            time.sleep(self.stepper_velocity)
+        steps_left = steps
+        last_step_time = 0
+        step_number = 0
+
+        while steps_left > 0:
+            now = time.time()
+            if (now - last_step_time) >= self.step_delay:
+                last_step_time = now
+                if direction == 1:
+                    step_number += 1
+                    if step_number == 4:
+                        step_number = 0
+                else:
+                    if step_number == 0:
+                        step_number = 4
+                    step_number -= 1
+                steps_left -= 1
+
+                step = step_number % 4
+                GPIO.output(self.__A, self.__step_sequence[step][0])
+                GPIO.output(self.__C, self.__step_sequence[step][1])
+                GPIO.output(self.__B, self.__step_sequence[step][2])
+                GPIO.output(self.__D, self.__step_sequence[step][3])
 
     def classify_trash(self,type):
         types = {
-            "lata":[(200,1),(200,0)],
-            "basura":[(200,0),(200,1)],
-            "plastico":[(400,0),(400,1)],
+            "lata":[(100,1),(100,0)],
+            "basura":[(100,0),(100,1)],
+            "plastico":[(200,0),(200,1)],
             "papel":[(0,0),(0,0)]
         }
 
@@ -117,7 +144,7 @@ class ColorSensor:
     
 
 if __name__ == "__main__":
-    motor = Motor(0.001)
+    motor = Motor(0.005)
     try:
         while True:
             tipo = input("Desecho: basura, lata, papel, plastico: ")    
